@@ -145,7 +145,7 @@ export function DashboardClient() {
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: '8px', border: '1px solid #E6E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => [`$${value}`, "Cost"]}
+                    formatter={(value: any) => [`$${value}`, "Cost"]}
                   />
                   <Line 
                     type="monotone" 
@@ -193,7 +193,7 @@ export function DashboardClient() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, "Spend"]}
+                    formatter={(value: any) => [`$${value.toLocaleString()}`, "Spend"]}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #E6E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend 
