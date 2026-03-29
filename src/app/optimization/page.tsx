@@ -1,81 +1,35 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Cpu, Database, HardDrive, Network, ExternalLink } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-const recommendations = [
-  {
-    category: "Compute",
-    icon: Cpu,
-    items: [
-      {
-        title: "Terminate idle EC2 instances",
-        resource: "i-0a1b2c3d4e5f6g7h8 (us-west-2)",
-        savings: "$134.50",
-        effort: "Low",
-        risk: "Low",
-      },
-      {
-        title: "Right-size underutilized instances",
-        resource: "worker-pool-asg",
-        savings: "$420.00",
-        effort: "Medium",
-        risk: "High",
-      }
-    ]
-  },
-  {
-    category: "Storage",
-    icon: HardDrive,
-    items: [
-      {
-        title: "Delete unattached EBS volumes",
-        resource: "8 orphaned volumes found",
-        savings: "$98.20",
-        effort: "Low",
-        risk: "Low",
-      },
-      {
-        title: "Move old S3 data to Infrequent Access",
-        resource: "logs-bucket-prod",
-        savings: "$210.00",
-        effort: "Medium",
-        risk: "Low",
-      }
-    ]
-  },
-  {
-    category: "Database",
-    icon: Database,
-    items: [
-      {
-        title: "Stop idle non-production RDS",
-        resource: "staging-db-cluster",
-        savings: "$350.00",
-        effort: "Low",
-        risk: "Medium",
-      }
-    ]
-  },
-  {
-    category: "Networking",
-    icon: Network,
-    items: [
-      {
-        title: "Delete unused NAT Gateways",
-        resource: "nat-09f8e7d6c5b4a3 (eu-central-1)",
-        savings: "$68.00",
-        effort: "Low",
-        risk: "Low",
-      }
-    ]
-  }
-]
-
 export default function OptimizationPage() {
+  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/optimization')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch optimizations");
+        return res.json();
+      })
+      .then(data => {
+        setRecommendations(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Failed to load optimizations", err)
+        setRecommendations([])
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Loading optimizations...</div>
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
@@ -94,7 +48,7 @@ export default function OptimizationPage() {
             </h3>
             
             <div className="grid gap-4">
-              {group.items.map((item, i) => (
+              {group.items?.map((item: any, i: number) => (
                 <Card key={i} className="hover:border-primary/50 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 gap-4">
                     <div className="space-y-1">

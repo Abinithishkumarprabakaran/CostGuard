@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Download, Calendar, ArrowUpRight, BarChart4 } from "lucide-react"
 import { 
   BarChart, 
@@ -15,16 +16,19 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
-const monthlyData = [
-  { month: "Sep", cost: 10400, budget: 11000 },
-  { month: "Oct", cost: 11200, budget: 11000 },
-  { month: "Nov", cost: 11800, budget: 12000 },
-  { month: "Dec", cost: 12100, budget: 12000 },
-  { month: "Jan", cost: 12900, budget: 13000 },
-  { month: "Feb", cost: 14200, budget: 13000 }, // Over budget
-]
-
 export default function ReportsPage() {
+  const [data, setData] = useState<any>(null)
+  
+  useEffect(() => {
+    fetch('/api/reports')
+     .then(res => res.json())
+     .then(setData)
+  }, [])
+
+  if (!data) return <div className="p-8 text-center text-muted-foreground">Loading reports...</div>
+
+  const { monthlyData = [], forecastCurrentMonth = 0, budgetCurrentMonth = 0, keyTakeaways = [] } = data;
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

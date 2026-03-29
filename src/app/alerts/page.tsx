@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AlertCircle, ArrowRight, CheckCircle2, ChevronRight } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,55 +8,37 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-const historicalAlerts = [
-  {
-    id: "ALRT-9201",
-    timestamp: "2026-02-26 14:32",
-    account: "Prod-Main (8472...)",
-    service: "Lambda",
-    severity: "Critical",
-    impact: "$450 (+312%)",
-    explanation: "Unintended infinite retry loop in processOrder function",
-    action: "Review execution logs and apply timeout bounds.",
-    status: "Open"
-  },
-  {
-    id: "ALRT-9200",
-    timestamp: "2026-02-25 09:15",
-    account: "Dev-Sandbox (1190...)",
-    service: "EC2",
-    severity: "Warning",
-    impact: "$120 (+45%)",
-    explanation: "3 m5.4xlarge instances left running overnight",
-    action: "Stop instances or implement auto-shutdown script.",
-    status: "Open"
-  },
-  {
-    id: "ALRT-9195",
-    timestamp: "2026-02-22 18:45",
-    account: "Prod-Main (8472...)",
-    service: "RDS",
-    severity: "Critical",
-    impact: "$890 (+40%)",
-    explanation: "Unexpected scale-up of production-db-1 storage layer",
-    action: "Investigate storage auto-scaling triggers.",
-    status: "Resolved"
-  },
-  {
-    id: "ALRT-9182",
-    timestamp: "2026-02-20 11:20",
-    account: "Marketing (3341...)",
-    service: "CloudFront",
-    severity: "Warning",
-    impact: "$85 (+15%)",
-    explanation: "Surge in data transfer out from US-East to APAC",
-    action: "Review CDN caching rules.",
-    status: "Resolved"
-  }
-]
-
 export default function AlertsPage() {
-  const [selectedAlert, setSelectedAlert] = useState<typeof historicalAlerts[0] | null>(null)
+  const [historicalAlerts, setHistoricalAlerts] = useState<any[]>([])
+  const [selectedAlert, setSelectedAlert] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/alerts")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch alerts");
+        return res.json();
+      })
+      .then(data => {
+        setHistoricalAlerts(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Failed to load alerts", err)
+        setHistoricalAlerts([])
+        setLoading(false)
+      })
+  }, [])
+
+  const resolveAlert = async (id: string) => {
+    await fetch(`/api/alerts/${id}/resolve`, { method: "PATCH" })
+    setHistoricalAlerts(alerts => alerts.map(a => a.id === id ? { ...a, resolved: true } : a))
+    if (selectedAlert?.id === id) {
+      setSelectedAlert({ ...selectedAlert, resolved: true })
+    }
+  }
+
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Loading alerts...</div>
 
   return (
     <div className="flex h-full relative">

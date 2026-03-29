@@ -51,9 +51,8 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   // IMPORTANT: Use the SERVICE_ROLE_KEY to bypass RLS for webhook sync operations
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  const { createAdminSupabaseClient } = require('@/lib/supabase-admin');
+  const supabase = createAdminSupabaseClient();
 
   console.log(`Webhook with an ID of ${id} and type of ${eventType}`)
 
@@ -95,17 +94,16 @@ export async function POST(req: Request) {
       const primaryEmail = email_addresses[0]?.email_address;
       
       await supabase.from('users').upsert({
-        id,
-        email: primaryEmail,
-        first_name: first_name,
-        last_name: last_name,
-      });
+        clerk_user_id: id,
+        email: primaryEmail || '',
+        full_name: `${first_name ?? ''} ${last_name ?? ''}`.trim(),
+      }, { onConflict: 'clerk_user_id' });
     }
 
     if (eventType === 'user.deleted') {
       const { id } = evt.data;
       if (id) {
-         await supabase.from('users').delete().match({ id });
+         await supabase.from('users').delete().match({ clerk_user_id: id });
       }
     }
 

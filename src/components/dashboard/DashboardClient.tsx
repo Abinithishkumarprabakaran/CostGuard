@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { 
   ArrowDownRight, 
   ArrowUpRight, 
@@ -29,15 +30,47 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 
-import { 
-  costOverTimeData, 
-  spendByServiceData, 
-  topCostDrivers, 
-  activeAnomalies, 
-  optimizationOpportunities 
-} from "@/lib/mock-data"
-
 export function DashboardClient() {
+  const [data, setData] = useState<any>(null);
+  const [opts, setOpts] = useState<any[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/dashboard')
+        .then(r => {
+          if (!r.ok) throw new Error("Dashboard fetch failed");
+          return r.json();
+        })
+        .catch(() => ({})),
+      fetch('/api/optimization')
+        .then(r => {
+          if (!r.ok) throw new Error("Optimization fetch failed");
+          return r.json();
+        })
+        .catch(() => ([]))
+    ]).then(([dash, opt]) => {
+      setData(dash || {});
+      setOpts(opt || []);
+    }).catch(err => {
+      // Prevent unhandled promise rejection
+      console.error(err);
+      setData({});
+      setOpts([]);
+    });
+  }, []);
+
+  if (!data) return <div className="p-8 text-center text-muted-foreground">Loading dashboard...</div>;
+
+  const costOverTimeData = Array.isArray(data?.costOverTime) ? data.costOverTime : [];
+  const spendByServiceData = Array.isArray(data?.spendByService) ? data.spendByService : [];
+  const topCostDrivers = Array.isArray(data?.topCostDrivers) ? data.topCostDrivers : [];
+  const activeAnomalies = Array.isArray(data?.recentAnomalies) ? data.recentAnomalies : [];
+  
+  // Safely handle API error objects and flatten the categorized items
+  const optimizationOpportunities = Array.isArray(opts) 
+    ? opts.flatMap((cat: any) => cat.items || []) 
+    : [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -55,10 +88,10 @@ export function DashboardClient() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,450.00</div>
+            <div className="text-2xl font-bold">${data.currentMonthSpend?.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-destructive" />
-              <span className="text-destructive font-medium">+12.5%</span> from last month
+              <span className="text-destructive font-medium">+{data.percentChange}%</span> from last month
             </p>
           </CardContent>
         </Card>
@@ -69,7 +102,7 @@ export function DashboardClient() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$14,200.00</div>
+            <div className="text-2xl font-bold">${data.forecastedSpend?.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
                <span className="text-muted-foreground">Projected EOM total</span>
             </p>
@@ -82,7 +115,7 @@ export function DashboardClient() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">+12.5%</div>
+            <div className="text-2xl font-bold text-destructive">+{data.percentChange}%</div>
             <p className="text-xs text-muted-foreground mt-1">
                <span className="text-muted-foreground">Higher than average</span>
             </p>
@@ -95,9 +128,9 @@ export function DashboardClient() {
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">3</div>
+            <div className="text-2xl font-bold text-destructive">{data.activeAnomalies}</div>
             <p className="text-xs text-destructive mt-1 flex items-center font-medium">
-               2 Critical, 1 Warning
+               Immediate action advised
             </p>
           </CardContent>
         </Card>
@@ -108,9 +141,9 @@ export function DashboardClient() {
             <PiggyBank className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">$1,230/mo</div>
+            <div className="text-2xl font-bold text-success">${data.potentialSavings}/mo</div>
             <p className="text-xs text-success mt-1 flex items-center font-medium">
-               12 optimization targets
+               {optimizationOpportunities.length} optimization targets
             </p>
           </CardContent>
         </Card>
@@ -188,7 +221,7 @@ export function DashboardClient() {
                     dataKey="value"
                     stroke="none"
                   >
-                    {spendByServiceData.map((entry, index) => (
+                    {spendByServiceData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -201,7 +234,7 @@ export function DashboardClient() {
                     verticalAlign="bottom" 
                     align="center"
                     iconType="circle"
-                    formatter={(value, entry, index) => (
+                    formatter={(value: any, entry: any, index: number) => (
                       <span className="text-sm font-medium text-foreground">{value}</span>
                     )}
                   />
@@ -230,7 +263,7 @@ export function DashboardClient() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topCostDrivers.map((driver) => (
+                {topCostDrivers.map((driver: any) => (
                   <TableRow key={driver.service}>
                     <TableCell className="font-medium">{driver.service}</TableCell>
                     <TableCell>{driver.cost}</TableCell>
@@ -264,7 +297,7 @@ export function DashboardClient() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {activeAnomalies.map((anomaly, i) => (
+              {activeAnomalies.map((anomaly: any, i: number) => (
                 <div key={i} className="flex flex-col gap-2 rounded-lg border p-4 bg-muted/30">
                   <div className="flex items-start justify-between">
                     <div>
@@ -300,7 +333,7 @@ export function DashboardClient() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {optimizationOpportunities.map((opt, i) => (
+              {optimizationOpportunities.map((opt: any, i: number) => (
                 <div key={i} className="flex flex-col rounded-lg border bg-card p-4 shadow-sm">
                   <div className="font-semibold">{opt.title}</div>
                   <div className="text-sm text-muted-foreground mt-1 mb-4 flex-1">{opt.description}</div>

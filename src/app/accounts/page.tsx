@@ -5,37 +5,43 @@ import { Plus, CheckCircle2, AlertCircle, Clock, Server, Trash2 } from "lucide-r
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-
-const accounts = [
-  {
-    name: "Production (Main)",
-    id: "847291038475",
-    status: "Healthy",
-    lastSync: "10 mins ago",
-    spend: "$9,450.00",
-    resources: 432
-  },
-  {
-    name: "Development Sandbox",
-    id: "119028374655",
-    status: "Warning",
-    lastSync: "12 mins ago",
-    spend: "$1,820.00",
-    resources: 184
-  },
-  {
-    name: "Marketing & Data",
-    id: "334190283746",
-    status: "Healthy",
-    lastSync: "15 mins ago",
-    spend: "$1,180.00",
-    resources: 56
-  }
-]
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AccountsPage() {
-  const [showConnect, setShowConnect] = useState(false)
+  const [accounts, setAccounts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    fetch('/api/accounts')
+      .then(res => res.json())
+      .then(data => {
+        // Map to UI shape
+        const mapped = Array.isArray(data) ? data.map((a: any) => ({
+          name: a.account_alias || a.aws_account_id,
+          id: a.aws_account_id,
+          internalId: a.id,
+          status: a.status === 'active' ? 'Healthy' : 'Warning',
+          lastSync: a.connected_at ? new Date(a.connected_at).toLocaleDateString() : 'N/A',
+          spend: "N/A", // From another API route usually
+          resources: "N/A" // From another API route usually
+        })) : [];
+        setAccounts(mapped)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Failed to load accounts", err)
+        setLoading(false)
+      })
+  }, [])
+
+  const handleDisconnect = async (id: string) => {
+    await fetch(`/api/accounts/${id}`, { method: 'DELETE' })
+    setAccounts(accs => accs.filter(a => a.internalId !== id))
+  }
+
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Loading accounts...</div>
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -46,62 +52,10 @@ export default function AccountsPage() {
             Manage your cloud environments and IAM role integrations.
           </p>
         </div>
-        <Button onClick={() => setShowConnect(true)}>
+        <Button onClick={() => router.push('/onboarding')}>
           <Plus className="mr-2 h-4 w-4" /> Connect New Account
         </Button>
       </div>
-
-      {showConnect && (
-        <Card className="border-primary shadow-md mb-8 animate-in slide-in-from-top-4">
-          <CardHeader className="bg-primary/5 border-b">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle>Connect AWS Account</CardTitle>
-                <CardDescription>Follow these steps to grant read-only access to your billing data.</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowConnect(false)}>Cancel</Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6 grid gap-8 md:grid-cols-2">
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">1</div>
-                <div>
-                  <h4 className="font-semibold mb-1">Create IAM Role</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Log into your AWS Console and create a new IAM role with the `cost-alert-read-only` policy.</p>
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                    Open AWS Console <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">2</div>
-                <div className="w-full">
-                  <h4 className="font-semibold mb-1">Paste Role ARN</h4>
-                  <p className="text-sm text-muted-foreground mb-3">Enter the ARN of the role you just created.</p>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      placeholder="arn:aws:iam::123456789012:role/CostAlertMonitoring" 
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-muted/50 rounded-lg p-6 border flex flex-col justify-center items-center text-center space-y-4">
-              <Server className="h-12 w-12 text-muted-foreground opacity-50" />
-              <div>
-                <h4 className="font-semibold">Ready to connect</h4>
-                <p className="text-sm text-muted-foreground mt-1">We will verify the connection and begin syncing your historical cost data immediately.</p>
-              </div>
-              <Button className="w-full mt-2" size="lg">Verify & Connect</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {accounts.map((acc) => (

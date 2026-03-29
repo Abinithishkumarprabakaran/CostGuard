@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Cost Guard Read-Only IAM Role.
+  Grants Cost Guard permission to read AWS billing data ONLY.
+  No write access. No service access beyond billing.
+
+Parameters:
+  ExternalId:
+    Type: String
+    Description: Security token provided by Cost Guard during onboarding.
+  CostGuardAwsAccountId:
+    Type: String
+    Description: Cost Guard backend AWS account ID.
+
+Resources:
+  CostGuardRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CostGuardReadOnlyRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${CostGuardAwsAccountId}:root"
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Policies:
+        - PolicyName: CostGuardBillingReadOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - ce:GetAnomalies
+                  - ce:GetDimensionValues
+                  - ce:GetTags
+                  - budgets:ViewBudget
+                Resource: "*"
+
+Outputs:
+  RoleArn:
+    Value: !GetAtt CostGuardRole.Arn
+    Export:
+      Name: CostGuardRoleArn
