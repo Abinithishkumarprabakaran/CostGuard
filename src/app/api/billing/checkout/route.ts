@@ -10,7 +10,7 @@ const checkoutSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const ip = "127.0.0.1";
@@ -44,8 +44,9 @@ export async function POST(req: Request) {
       subscription_data: {
         trial_period_days: parseInt(process.env.STRIPE_TRIAL_DAYS || "14"),
         metadata: {
-            user_id: userRow.id,
-            plan: plan
+          user_id: userRow.id,
+          plan: plan,
+          org_id: orgId ?? "",
         }
       },
       line_items: [

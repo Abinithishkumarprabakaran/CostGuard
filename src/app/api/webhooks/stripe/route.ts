@@ -33,11 +33,13 @@ export async function POST(req: Request) {
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as any;
         const userId = subscription.metadata?.user_id;
         const plan = subscription.metadata?.plan || "starter";
+        const orgId = subscription.metadata?.org_id || null;
 
         if (userId) {
           await supabase.from("subscriptions").upsert({
             user_id: userId,
-            stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+            org_id: orgId,
+            stripe_customer_id: typeof session.customer === 'string' ? session.customer : (session.customer as any)?.id,
             stripe_subscription_id: subscription.id,
             plan: plan,
             status: subscription.status,

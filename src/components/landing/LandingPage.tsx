@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, BarChart3, BellRing, Lock, Search, ShieldCheck, Zap } from "lucide-react"
 import Link from "next/link"
 import { PricingPlans } from "@/components/pricing/PricingPlans"
+import RoadmapSection from "@/components/landing/RoadmapSection"
 
 export function LandingPage() {
   return (
@@ -23,6 +24,9 @@ export function LandingPage() {
           </Link>
           <Link className="text-sm font-medium hover:text-primary transition-colors" href="#how-it-works">
             How it works
+          </Link>
+          <Link className="text-sm font-medium hover:text-primary transition-colors" href="#roadmap">
+            Roadmap
           </Link>
           <Link href="/sign-in">
             <Button variant="ghost" className="text-sm font-medium">Log in</Button>
@@ -151,6 +155,9 @@ export function LandingPage() {
             <PricingPlans />
           </div>
         </section>
+
+        {/* Roadmap Section */}
+        <RoadmapSection />
 
         {/* ROI Section */}
         <section className="w-full py-16 md:py-24 bg-secondary/30 border-b">

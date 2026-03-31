@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Cpu, Database, HardDrive, Network, ExternalLink } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -43,7 +43,6 @@ export default function OptimizationPage() {
         {recommendations.map((group) => (
           <div key={group.category} className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center gap-2 border-b pb-2">
-              <group.icon className="h-5 w-5 text-primary" />
               {group.category}
             </h3>
             

@@ -1,7 +1,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminSupabaseClient } from '@/lib/supabase-admin'
 
 export async function POST(req: Request) {
   // Setup svix webhook
@@ -51,7 +51,6 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   // IMPORTANT: Use the SERVICE_ROLE_KEY to bypass RLS for webhook sync operations
-  const { createAdminSupabaseClient } = require('@/lib/supabase-admin');
   const supabase = createAdminSupabaseClient();
 
   console.log(`Webhook with an ID of ${id} and type of ${eventType}`)

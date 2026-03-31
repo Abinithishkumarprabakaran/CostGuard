@@ -1,17 +1,20 @@
 import { CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 const plans = [
   {
     name: "Starter",
-    price: "$79",
+    plan: "starter",
+    price: "$49",
     period: "/month",
     label: "For Solo Builders",
     features: [
       "1 AWS account",
       "Daily cost spike detection",
+      "Slack alerts with context",
       "Email alerts",
-      "30-day cost breakdown",
+      "30-day cost history",
       "14-day free trial",
       "Cancel anytime"
     ],
@@ -19,13 +22,15 @@ const plans = [
   },
   {
     name: "Growth",
-    price: "$159",
+    plan: "growth",
+    price: "$149",
     period: "/month",
     label: "For Seed-Stage Startup Teams",
     features: [
       "Up to 3 AWS accounts",
       "Slack alerts with context",
       "Service-level spike attribution",
+      "AI-powered spike explanations",
       "Optimization suggestions",
       "Tag-based cost filtering",
       "Priority email support",
@@ -37,7 +42,8 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$349",
+    plan: "pro",
+    price: "$299",
     period: "/month",
     label: "For Scaling Teams",
     features: [
@@ -51,7 +57,7 @@ const plans = [
       "14-day free trial"
     ],
     value: "For Series A teams managing multiple AWS accounts.",
-    cta: "Upgrade to Pro"
+    cta: "Start Free Trial"
   }
 ]
 
@@ -91,13 +97,15 @@ export function PricingPlans() {
               {plan.period && <span className="ml-1 text-muted-foreground font-medium">{plan.period}</span>}
             </div>
             
-            <Button 
-              className={`w-full mb-6 font-bold`} 
-              variant={plan.highlighted ? 'default' : 'outline'}
-              size="lg"
-            >
-              {plan.cta}
-            </Button>
+            <Link href={`/sign-up?plan=${plan.plan}`} className="w-full mb-6">
+              <Button
+                className="w-full font-bold"
+                variant={plan.highlighted ? 'default' : 'outline'}
+                size="lg"
+              >
+                {plan.cta}
+              </Button>
+            </Link>
 
             <ul className="space-y-4 shrink-0 flex-1 mb-6">
               {plan.features.map((feature, i) => (
@@ -154,7 +162,7 @@ export function PricingPlans() {
                 <td className="p-4 text-center text-muted-foreground">Real-time</td>
               </tr>
               <tr className="hover:bg-muted/30 transition-colors">
-                <td className="p-4 text-foreground font-medium">Cost Breakdown History</td>
+                <td className="p-4 text-foreground font-medium">Cost History</td>
                 <td className="p-4 text-center text-muted-foreground">30 days</td>
                 <td className="p-4 text-center text-foreground font-semibold bg-primary/5">30 days</td>
                 <td className="p-4 text-center text-muted-foreground">90 days</td>
@@ -176,7 +184,7 @@ export function PricingPlans() {
               </tr>
               <tr className="hover:bg-muted/30 transition-colors">
                 <td className="p-4 text-foreground font-medium">Slack Alerts</td>
-                <td className="p-4 text-center text-muted-foreground/50">✗</td>
+                <td className="p-4 text-center text-foreground font-semibold">✓ <span className="text-xs font-normal text-muted-foreground block">(With context)</span></td>
                 <td className="p-4 text-center text-foreground font-semibold bg-primary/5">✓ <span className="text-xs font-normal text-muted-foreground block">(With context)</span></td>
                 <td className="p-4 text-center text-foreground font-semibold">✓ <span className="text-xs font-normal text-muted-foreground block">(With context)</span></td>
               </tr>
@@ -210,7 +218,7 @@ export function PricingPlans() {
               <tr className="hover:bg-muted/30 transition-colors">
                 <td className="p-4 text-foreground font-medium">AI Spike Explanations</td>
                 <td className="p-4 text-center text-muted-foreground/50">✗</td>
-                <td className="p-4 text-center text-muted-foreground/50 bg-primary/5">✗</td>
+                <td className="p-4 text-center text-primary font-bold bg-primary/5">✓</td>
                 <td className="p-4 text-center text-primary font-bold">✓</td>
               </tr>
               <tr className="hover:bg-muted/30 transition-colors">
@@ -237,14 +245,14 @@ export function PricingPlans() {
                 <td className="p-4 text-center text-foreground font-semibold bg-primary/5">Priority Email</td>
                 <td className="p-4 text-center text-muted-foreground">Dedicated Slack</td>
               </tr>
-              
+
               {/* Billing */}
               <tr className="bg-muted/30"><td colSpan={4} className="p-3 font-semibold text-foreground text-xs uppercase tracking-wider">Billing</td></tr>
               <tr className="hover:bg-muted/30 transition-colors">
-                <td className="p-4 text-foreground font-medium">14-Day Free Trial</td>
-                <td className="p-4 text-center text-primary font-bold">✓</td>
-                <td className="p-4 text-center text-primary font-bold bg-primary/5">✓</td>
-                <td className="p-4 text-center text-primary font-bold">✓</td>
+                <td className="p-4 text-foreground font-medium">Free Trial</td>
+                <td className="p-4 text-center text-primary font-bold">14 days</td>
+                <td className="p-4 text-center text-primary font-bold bg-primary/5">14 days</td>
+                <td className="p-4 text-center text-primary font-bold">14 days</td>
               </tr>
             </tbody>
           </table>
@@ -258,7 +266,7 @@ export function PricingPlans() {
               When a $5,000 RDS anomaly hits, an email alert isn&apos;t enough. Growth drops the exact service, the context, and the fix directly into your engineering Slack channel—saving hours of digging through the AWS console.
             </p>
           </div>
-          
+
           <div className="bg-card border border-border rounded-xl p-6">
             <h4 className="font-bold text-lg text-foreground mb-2">Managing production, staging, and dev accounts?</h4>
             <p className="text-muted-foreground leading-relaxed">

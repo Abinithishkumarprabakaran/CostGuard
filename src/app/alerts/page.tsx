@@ -20,7 +20,19 @@ export default function AlertsPage() {
         return res.json();
       })
       .then(data => {
-        setHistoricalAlerts(Array.isArray(data) ? data : [])
+        const mapped = Array.isArray(data) ? data.map((a: any) => ({
+          id: a.id,
+          timestamp: a.date ? new Date(a.date).toLocaleDateString() : new Date(a.created_at).toLocaleDateString(),
+          account: a.aws_accounts?.account_alias || "Unknown",
+          service: a.service,
+          severity: a.delta_pct > 100 ? "Critical" : "Warning",
+          impact: `$${Number(a.daily_cost).toFixed(2)} (+${Number(a.delta_pct).toFixed(0)}%)`,
+          status: a.resolved ? "Resolved" : "Open",
+          explanation: a.ai_explanation || "No explanation available.",
+          action: a.ai_fix || "Review AWS Cost Explorer for this service.",
+          resolved: a.resolved,
+        })) : [];
+        setHistoricalAlerts(mapped)
         setLoading(false)
       })
       .catch(err => {
@@ -159,7 +171,7 @@ export default function AlertsPage() {
 
             {selectedAlert.status === 'Open' && (
               <div className="pt-4 border-t">
-                <Button variant="secondary" className="w-full text-success hover:text-success hover:bg-success/10 font-semibold border-success/20">
+                <Button variant="secondary" className="w-full text-success hover:text-success hover:bg-success/10 font-semibold border-success/20" onClick={() => resolveAlert(selectedAlert.id)}>
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Mark as Resolved
                 </Button>
               </div>

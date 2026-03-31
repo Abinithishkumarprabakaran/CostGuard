@@ -87,7 +87,7 @@ export default function AccountsPage() {
             </CardContent>
             <CardFooter className="bg-muted/30 pt-4 border-t flex justify-between">
               <Button variant="outline" size="sm">Manage Access</Button>
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDisconnect(acc.internalId)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </CardFooter>

@@ -1,6 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let _client: Anthropic | null = null;
+function getClient() {
+  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _client;
+}
 
 export interface SpikeExplanation {
   cause: string;
@@ -31,8 +35,8 @@ Respond ONLY with valid JSON in this exact format (no preamble, no markdown):
   "confidence": "high"
 }`;
 
-  const message = await client.messages.create({
-    model: "claude-haiku-3-5-sonnet-20241022", // updated to a valid model identifier if latest haiku unavailable, or sticking to provided prompt
+  const message = await getClient().messages.create({
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 300,
     system:
       "You are an AWS cloud cost optimization expert. Respond only in valid JSON. Be specific. Use plain English. No jargon.",
